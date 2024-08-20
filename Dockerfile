@@ -16,6 +16,7 @@ RUN rm -rf venv \
     && poetry install
 
 ADD qsa-api/qsa_api /qsa/qsa_api
+
 ENV PATH=/qsa/venv/bin:$PATH
 EXPOSE 5000
 CMD ["gunicorn"  , "-b", "0.0.0.0:5000", "--workers", "1", "--threads", "1", "qsa_api.app:app"]
