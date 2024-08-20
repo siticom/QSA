@@ -353,7 +353,6 @@ class QSAProject:
         if t == Qgis.LayerType.Vector:
             self.debug("Init vector layer")
             lyr = QgsVectorLayer(datasource, name, provider)
-            self.debug(lyr)
         elif t == Qgis.LayerType.Raster:
             self.debug("Init raster layer")
             lyr = QgsRasterLayer(datasource, name, provider)
