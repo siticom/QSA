@@ -5,6 +5,7 @@ import shutil
 import sqlite3
 from pathlib import Path
 
+from qgis.PyQt.QtXml import QDomDocument
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.core import (
     Qgis,
@@ -32,6 +33,8 @@ from .mapproxy import QSAMapProxy
 from .vector import VectorSymbologyRenderer
 from .utils import StorageBackend, config, logger
 from .raster import RasterSymbologyRenderer, RasterOverview
+
+import os, tempfile, json
 
 
 RENDERER_TAG_NAME = "renderer-v2"  # constant from core/symbology/renderer.h
@@ -203,6 +206,38 @@ class QSAProject:
         s["point"] = self.style_default("point")
 
         return s
+    
+    def get_style_from_layer(self, schema_name: str, project_name: str, layer_name: str) -> str:
+        service = config().qgisserver_projects_psql_service
+        uri = f"postgresql:?service={service}&schema={schema_name}&project={project_name}"
+        QgsProject.instance().read(uri)
+        project = QgsProject.instance()
+        map_layers = project.mapLayers()
+
+        for layer in map_layers.values():
+            map_layer_name = layer.name()
+            if map_layer_name == layer_name:
+                logger().debug(f"Processing layer: {layer_name}")
+                style_manager = layer.styleManager()
+                default_style = style_manager.currentStyle()
+                logger().debug(f"Extracting default style: {default_style}")
+
+                # d = QDomDocument()
+                # layer.exportNamedStyle(d, categories=QgsMapLayer.Symbology)
+                # s = d.toString()
+
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.qml', delete=False) as temp_file:
+                    temp_filename = temp_file.name
+                layer.saveNamedStyle(temp_filename)
+                
+                with open(temp_filename, 'r') as qml_file:
+                    qml_content = qml_file.read()
+                os.unlink(temp_filename)
+                return qml_content, ""
+            
+        logger().debug(f"Layer '{layer_name}' not found in project '{project_name}'")
+        return "",  f"Layer '{layer_name}' not found in project '{project_name}'"
+
 
     def layer(self, name: str) -> dict:
         project = QgsProject()

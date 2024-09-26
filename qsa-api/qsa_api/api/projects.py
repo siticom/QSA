@@ -136,6 +136,24 @@ def project_style(name, style):
     except Exception as e:
         logger().exception(str(e))
         return {"error": "internal server error"}, 415
+    
+@projects.get("/<project_name>/layer_style/<layer_name>")
+def project_layer_style(project_name, layer_name):
+    log_request()
+    try:
+        psql_schema = request.args.get("schema", default="public")
+        project = QSAProject(project_name, psql_schema)
+        if project.exists():
+            styles, err = project.get_style_from_layer(psql_schema, project_name, layer_name)
+            if err:
+                return {"error": err}, 400
+            else:
+                return jsonify(styles), 200
+        else:
+            return {"error": "Project does not exist"}, 400
+    except Exception as e:
+        logger().exception(str(e))
+        return {"error": "internal server error"}, 415
 
 
 @projects.delete("/<name>/styles/<style>")
