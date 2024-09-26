@@ -4,7 +4,7 @@ import shutil
 import requests
 from jsonschema import validate
 from jsonschema.exceptions import ValidationError
-from flask import send_file, Blueprint, jsonify, request
+from flask import send_file, Blueprint, jsonify, request, Response
 
 from qgis.PyQt.QtCore import QDateTime
 
@@ -144,11 +144,11 @@ def project_layer_style(project_name, layer_name):
         psql_schema = request.args.get("schema", default="public")
         project = QSAProject(project_name, psql_schema)
         if project.exists():
-            styles, err = project.get_style_from_layer(psql_schema, project_name, layer_name)
+            style, err = project.get_style_from_layer(psql_schema, project_name, layer_name)
             if err:
                 return {"error": err}, 400
             else:
-                return jsonify(styles), 200
+                return Response(style, mimetype='application/xml')
         else:
             return {"error": "Project does not exist"}, 400
     except Exception as e:

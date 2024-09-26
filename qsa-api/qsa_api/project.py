@@ -221,17 +221,12 @@ class QSAProject:
                 style_manager = layer.styleManager()
                 default_style = style_manager.currentStyle()
                 logger().debug(f"Extracting default style: {default_style}")
-
-                # d = QDomDocument()
-                # layer.exportNamedStyle(d, categories=QgsMapLayer.Symbology)
-                # s = d.toString()
-
                 with tempfile.NamedTemporaryFile(mode='w', suffix='.qml', delete=False) as temp_file:
                     temp_filename = temp_file.name
                 layer.saveNamedStyle(temp_filename)
-                
                 with open(temp_filename, 'r') as qml_file:
-                    qml_content = qml_file.read()
+                    qml_content = qml_file.read().replace("'", "''")
+                logger().debug(qml_content)
                 os.unlink(temp_filename)
                 return qml_content, ""
             
