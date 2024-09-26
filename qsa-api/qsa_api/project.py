@@ -226,7 +226,6 @@ class QSAProject:
                 layer.saveNamedStyle(temp_filename)
                 with open(temp_filename, 'r') as qml_file:
                     qml_content = qml_file.read().replace("'", "''")
-                logger().debug(qml_content)
                 os.unlink(temp_filename)
                 return qml_content, ""
             
