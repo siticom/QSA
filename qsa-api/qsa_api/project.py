@@ -217,10 +217,6 @@ class QSAProject:
         for layer in map_layers.values():
             map_layer_name = layer.name()
             if map_layer_name == layer_name:
-                logger().debug(f"Processing layer: {layer_name}")
-                style_manager = layer.styleManager()
-                default_style = style_manager.currentStyle()
-                logger().debug(f"Extracting default style: {default_style}")
                 with tempfile.NamedTemporaryFile(mode='w', suffix='.qml', delete=False) as temp_file:
                     temp_filename = temp_file.name
                 layer.saveNamedStyle(temp_filename)
