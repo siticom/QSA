@@ -30,7 +30,12 @@ class QSAMapProxy:
         with open(self._mapproxy_project, "w") as file:
             yaml.safe_dump(self.cfg, file, sort_keys=False)
 
-    def read(self) -> bool:
+    def read(self) -> (bool, str):
+        # if a QGIS project is created manually without QSA, the MapProxy
+        # configuration file may not be created at this point.
+        if not self._mapproxy_project.exists():
+            self.create()
+
         try:
             with open(self._mapproxy_project, "r") as file:
                 self.cfg = yaml.safe_load(file)
@@ -48,6 +53,21 @@ class QSAMapProxy:
 
         return True, ""
 
+    def metadata(self) -> dict:
+        md = {}
+
+        md["storage"] = ""
+        md["valid"] = False
+
+        if self._mapproxy_project.exists():
+            md["valid"] = True
+
+            md["storage"] = "filesystem"
+            if config().mapproxy_cache_s3_bucket:
+                md["storage"] = "s3"
+
+        return md
+
     def clear_cache(self, layer_name: str) -> None:
         if config().mapproxy_cache_s3_bucket:
             bucket_name = config().mapproxy_cache_s3_bucket
@@ -64,9 +84,13 @@ class QSAMapProxy:
             bucket.objects.filter(Prefix=cache_dir).delete()
         else:
             cache_dir = self._mapproxy_project.parent / "cache_data"
-            self.debug(f"Clear cache '{cache_dir}'")
+            self.debug(f"Clear tiles cache '{cache_dir}'")
             for d in cache_dir.glob(f"{layer_name}_cache_*"):
                 shutil.rmtree(d)
+
+            cache_dir = self._mapproxy_project.parent / "cache_data" / "legends"
+            self.debug(f"Clear legends cache '{cache_dir}'")
+            shutil.rmtree(cache_dir, ignore_errors=True)
 
     def add_layer(
         self,
