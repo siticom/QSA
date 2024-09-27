@@ -144,7 +144,7 @@ def project_layer_style(project_name, layer_name):
         psql_schema = request.args.get("schema", default="public")
         project = QSAProject(project_name, psql_schema)
         if project.exists():
-            style, err = project.get_style_from_layer(psql_schema, project_name, layer_name)
+            style, err = project.get_style_from_layer(project_name, layer_name)
             if err:
                 return {"error": err}, 400
             else:

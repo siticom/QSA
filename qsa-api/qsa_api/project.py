@@ -207,11 +207,9 @@ class QSAProject:
 
         return s
     
-    def get_style_from_layer(self, schema_name: str, project_name: str, layer_name: str) -> str:
-        service = config().qgisserver_projects_psql_service
-        uri = f"postgresql:?service={service}&schema={schema_name}&project={project_name}"
-        QgsProject.instance().read(uri)
-        project = QgsProject.instance()
+    def get_style_from_layer(self, project_name: str, layer_name: str) -> str:
+        project = QgsProject()
+        project.read(self._qgis_project_uri)
         map_layers = project.mapLayers()
 
         for layer in map_layers.values():
