@@ -5,7 +5,6 @@ import shutil
 import sqlite3
 from pathlib import Path
 
-from qgis.PyQt.QtXml import QDomDocument
 from qgis.PyQt.QtCore import Qt, QDateTime
 from qgis.core import (
     Qgis,
