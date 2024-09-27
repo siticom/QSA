@@ -33,7 +33,7 @@ from .vector import VectorSymbologyRenderer
 from .utils import StorageBackend, config, logger
 from .raster import RasterSymbologyRenderer, RasterOverview
 
-import os, tempfile, json
+import os, tempfile
 
 
 RENDERER_TAG_NAME = "renderer-v2"  # constant from core/symbology/renderer.h
@@ -221,7 +221,7 @@ class QSAProject:
             elif format_type == "sld":
                 layer.saveSldStyle(temp_filename)
             with open(temp_filename, 'r') as qml_file:
-                content = qml_file.read().replace("'", "''")
+                content = qml_file.read()
             os.unlink(temp_filename)
         return content, ""
 
