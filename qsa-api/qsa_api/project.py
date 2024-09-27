@@ -210,21 +210,17 @@ class QSAProject:
     def get_style_from_layer(self, project_name: str, layer_name: str) -> str:
         project = QgsProject()
         project.read(self._qgis_project_uri)
-        map_layers = project.mapLayers()
-
-        for layer in map_layers.values():
-            map_layer_name = layer.name()
-            if map_layer_name == layer_name:
-                with tempfile.NamedTemporaryFile(mode='w', suffix='.qml', delete=False) as temp_file:
-                    temp_filename = temp_file.name
-                layer.saveNamedStyle(temp_filename)
-                with open(temp_filename, 'r') as qml_file:
-                    qml_content = qml_file.read().replace("'", "''")
-                os.unlink(temp_filename)
-                return qml_content, ""
-            
-        logger().debug(f"Layer '{layer_name}' not found in project '{project_name}'")
-        return "",  f"Layer '{layer_name}' not found in project '{project_name}'"
+        layers = project.mapLayersByName(layer_name)
+        if not layers:
+            logger().debug(f"Layer '{layer_name}' not found in project '{project_name}'")
+            return "",  f"Layer '{layer_name}' not found in project '{project_name}'"
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.qml', delete=False) as temp_file:
+            temp_filename = temp_file.name
+            layers[0].saveNamedStyle(temp_filename)
+            with open(temp_filename, 'r') as qml_file:
+                qml_content = qml_file.read().replace("'", "''")
+            os.unlink(temp_filename)
+            return qml_content, ""
 
 
     def layer(self, name: str) -> dict:
