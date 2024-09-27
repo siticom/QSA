@@ -207,20 +207,24 @@ class QSAProject:
 
         return s
     
-    def get_style_from_layer(self, project_name: str, layer_name: str) -> str:
+    def get_style_from_layer(self, project_name: str, layer_name: str, format_type: str) -> str:
         project = QgsProject()
         project.read(self._qgis_project_uri)
         layers = project.mapLayersByName(layer_name)
         if not layers:
             logger().debug(f"Layer '{layer_name}' not found in project '{project_name}'")
             return "",  f"Layer '{layer_name}' not found in project '{project_name}'"
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.qml', delete=False) as temp_file:
+        layer = layers[0]
+        with tempfile.NamedTemporaryFile(mode='w', suffix=f'.{format_type}', delete=False) as temp_file:
             temp_filename = temp_file.name
-            layers[0].saveNamedStyle(temp_filename)
+            if format_type == "qml":
+                layer.saveNamedStyle(temp_filename)
+            elif format_type == "sld":
+                layer.saveSldStyle(temp_filename)
             with open(temp_filename, 'r') as qml_file:
-                qml_content = qml_file.read().replace("'", "''")
+                content = qml_file.read().replace("'", "''")
             os.unlink(temp_filename)
-            return qml_content, ""
+        return content, ""
 
 
     def layer(self, name: str) -> dict:
