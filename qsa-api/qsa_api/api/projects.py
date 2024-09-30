@@ -137,17 +137,17 @@ def project_style(name, style):
         logger().exception(str(e))
         return {"error": "internal server error"}, 415
     
-@projects.get("/<project_name>/layer_style/<layer_name>")
-def project_layer_style(project_name, layer_name):
+@projects.get("/<name>/layer_style/<layer_name>")
+def project_layer_style(name, layer_name):
     log_request()
     try:
         psql_schema = request.args.get("schema", default="public")
         format_type = request.args.get("format", default="qml")
         if format_type not in ["qml", "sld"]:
             return {"error": "Invalid format. Use 'qml' or 'sld'."}, 400
-        project = QSAProject(project_name, psql_schema)
+        project = QSAProject(name, psql_schema)
         if project.exists():
-            style, err = project.get_style_from_layer(project_name, layer_name, format_type)
+            style, err = project.get_style_from_layer(name, layer_name, format_type)
             if err:
                 return {"error": err}, 400
             else:
