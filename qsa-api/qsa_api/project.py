@@ -33,6 +33,8 @@ from .vector import VectorSymbologyRenderer
 from .utils import StorageBackend, config, logger
 from .raster import RasterSymbologyRenderer, RasterOverview
 
+import os, tempfile
+
 
 RENDERER_TAG_NAME = "renderer-v2"  # constant from core/symbology/renderer.h
 
@@ -203,6 +205,26 @@ class QSAProject:
         s["point"] = self.style_default("point")
 
         return s
+    
+    def get_style_from_layer(self, project_name: str, layer_name: str, format_type: str) -> str:
+        project = QgsProject()
+        project.read(self._qgis_project_uri)
+        layers = project.mapLayersByName(layer_name)
+        if not layers:
+            logger().debug(f"Layer '{layer_name}' not found in project '{project_name}'")
+            return "",  f"Layer '{layer_name}' not found in project '{project_name}'"
+        layer = layers[0]
+        with tempfile.NamedTemporaryFile(mode='w', suffix=f'.{format_type}', delete=False) as temp_file:
+            temp_filename = temp_file.name
+            if format_type == "qml":
+                layer.saveNamedStyle(temp_filename)
+            elif format_type == "sld":
+                layer.saveSldStyle(temp_filename)
+            with open(temp_filename, 'r') as style_file:
+                content = style_file.read()
+            os.unlink(temp_filename)
+        return content, ""
+
 
     def layer(self, name: str) -> dict:
         project = QgsProject()
