@@ -220,8 +220,8 @@ class QSAProject:
                 layer.saveNamedStyle(temp_filename)
             elif format_type == "sld":
                 layer.saveSldStyle(temp_filename)
-            with open(temp_filename, 'r') as qml_file:
-                content = qml_file.read()
+            with open(temp_filename, 'r') as style_file:
+                content = style_file.read()
             os.unlink(temp_filename)
         return content, ""
 
